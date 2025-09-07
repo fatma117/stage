@@ -1,6 +1,6 @@
-import { Occurrence } from "./fingerprintIndex.js";
-import { TokenizedFile } from "../file/tokenizedFile.js";
-import { Identifiable } from "../util/identifiable.ts";
+import { Occurrence } from "./fingerprintIndex";
+import { TokenizedFile } from "../file/tokenizedFile";
+import { Identifiable } from "../util/identifiable";
 
 export class SharedFingerprint extends Identifiable {
 

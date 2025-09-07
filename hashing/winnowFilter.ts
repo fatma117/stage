@@ -1,5 +1,5 @@
-import { Fingerprint, HashFilter } from "./hashFilter.js";
-import { RollingHash } from "./rollingHash.js";
+import { Fingerprint, HashFilter } from "./hashFilter";
+import { RollingHash } from "./rollingHash";
 
 export class WinnowFilter extends HashFilter {
   private readonly k: number;

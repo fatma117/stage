@@ -1,7 +1,7 @@
-import { assert } from "../util/utils.ts";
-import { PairedOccurrence } from "./pairedOccurrence.js";
-import { Region } from "../util/region.ts";
-import { Range } from "../util/range.ts";
+import { assert } from "../util/utils";
+import { PairedOccurrence } from "./pairedOccurrence";
+import { Region } from "../util/region";
+import { Range } from "../util/range";
 
 /**
  * A fragment is a collection of one or more consequent pairedOccurrences (kgrams).

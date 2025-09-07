@@ -1,4 +1,4 @@
-import { assert } from "./utils.js";
+import { assert } from "./utils";
 
 /**
  * A range of whole numbers starting at `from` (inclusive) and ending at `to`

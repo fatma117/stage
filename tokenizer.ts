@@ -1,8 +1,8 @@
 import { PascalParser } from './parser';
 import { PascalNormalizer, DolosTokenResult } from './normalizer';
-import { Region } from '../util/region.ts';
-import { File } from '../file/file.ts';
-import { TokenizedFile } from '../file/tokenizedFile.ts';
+import { Region } from '../util/region';
+import { File } from '../file/file';
+import { TokenizedFile } from '../file/tokenizedFile';
 import Parser from 'tree-sitter';
 
 export class PascalTokenizer {
@@ -68,5 +68,62 @@ export class PascalTokenizer {
     for (const child of node.children) {
       this.printNode(child, depth + 1);
     }
+  }
+
+  /**
+   * Get semantic information about Pascal constructs
+   */
+  public getSemanticInfo(content: string): {
+    procedures: string[];
+    functions: string[];
+    types: string[];
+    variables: string[];
+  } {
+    const info = {
+      procedures: [] as string[],
+      functions: [] as string[],
+      types: [] as string[],
+      variables: [] as string[]
+    };
+
+    try {
+      // Extract semantic information using regex as fallback
+      const procedureMatches = content.match(/procedure\s+(\w+)/gi);
+      if (procedureMatches) {
+        info.procedures = procedureMatches.map(m => m.split(/\s+/)[1].toLowerCase());
+      }
+
+      const functionMatches = content.match(/function\s+(\w+)/gi);
+      if (functionMatches) {
+        info.functions = functionMatches.map(m => m.split(/\s+/)[1].toLowerCase());
+      }
+
+      const typeMatches = content.match(/type\s*\n[\s\S]*?(?=\n\s*(var|const|procedure|function|begin))/gi);
+      if (typeMatches) {
+        for (const typeBlock of typeMatches) {
+          const typeNames = typeBlock.match(/(\w+)\s*=/g);
+          if (typeNames) {
+            info.types.push(...typeNames.map(t => t.split('=')[0].trim().toLowerCase()));
+          }
+        }
+      }
+
+      const varMatches = content.match(/var\s*\n[\s\S]*?(?=\n\s*(type|const|procedure|function|begin))/gi);
+      if (varMatches) {
+        for (const varBlock of varMatches) {
+          const varNames = varBlock.match(/(\w+)(?:\s*,\s*\w+)*\s*:/g);
+          if (varNames) {
+            for (const varLine of varNames) {
+              const names = varLine.split(':')[0].split(',').map(n => n.trim().toLowerCase());
+              info.variables.push(...names);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to extract semantic info:', error);
+    }
+
+    return info;
   }
 }

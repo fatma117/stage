@@ -7,26 +7,27 @@ function isError<T>(value: ResultValue<T>): value is Error {
 /**
  * A class that represents the result of a computation that could have failed.
  * Its value is either a T or an Error.
- *
  */
 export class Result<T> {
-
   public static try<T>(canFail: () => T): Result<T> {
     try {
       return Result.ok(canFail());
     } catch (error) {
-      return Result.error(error);
+      if (error instanceof Error) {
+        return Result.error(error);
+      } else {
+        return Result.error(new Error(String(error)));
+      }
     }
   }
 
   public static async settled<T>(
     result: Result<Promise<T>>
   ): Promise<Result<T>> {
-
     if (result.isOk()) {
       return Result.ok(await result.ok());
     } else {
-      return Result.error(await result.error());
+      return Result.error(result.error());
     }
   }
 
@@ -35,6 +36,7 @@ export class Result<T> {
   ): Promise<Result<Array<T>>> {
     const successes: T[] = [];
     const failures: Error[] = [];
+
     for await (const result of promises) {
       if (result.isOk()) {
         successes.push(result.ok());
@@ -42,11 +44,14 @@ export class Result<T> {
         failures.push(result.error());
       }
     }
+
     if (failures.length > 0) {
-      return Result.error(new Error(
-        "There were a few errors: \n" +
-        failures.map(e => e.toString()).join("\n")
-      ));
+      return Result.error(
+        new Error(
+          "There were a few errors: \n" +
+            failures.map((e) => e.toString()).join("\n")
+        )
+      );
     } else {
       return Result.ok(successes);
     }
@@ -55,16 +60,19 @@ export class Result<T> {
   public static async tryAwait<T>(
     canFail: () => Promise<T>
   ): Promise<Result<T>> {
-
     try {
       return Result.ok(await canFail());
-    } catch (err) {
-      return Result.error(err);
+    } catch (error) {
+      if (error instanceof Error) {
+        return Result.error(error);
+      } else {
+        return Result.error(new Error(String(error)));
+      }
     }
   }
 
   public static ok<T>(value: T): Result<T> {
-    return new Result(value);
+    return new Result<T>(value);
   }
 
   public static error<T>(error: Error): Result<T> {
@@ -79,6 +87,10 @@ export class Result<T> {
 
   public isError(): boolean {
     return isError(this.value);
+  }
+
+  public isOk(): boolean {
+    return !isError(this.value);
   }
 
   public map<R>(f: (t: T) => R): Result<R> {
@@ -121,10 +133,6 @@ export class Result<T> {
     }
   }
 
-  public isOk(): boolean {
-    return !isError(this.value);
-  }
-
   public error(): Error {
     if (isError(this.value)) {
       return this.value;
@@ -134,6 +142,6 @@ export class Result<T> {
   }
 
   public toString(): string {
-    return `Result[${this.value}]`;
+    return `Result[${this.isError() ? "Error: " + this.value : this.value}]`;
   }
 }
